@@ -18,7 +18,7 @@ HEADERS     := cheats.h ../common.h ../cpu_common.h ../cpu.h draw.h main.h    \
                ../stats.h ../video.h ../zip.h port.h od-sound.h ../sha1.h     \
                imageio.h ../unifont.h od-input.h settings.h
 
-INCLUDE     := -I. -I.. -I../mips
+INCLUDE     := -I. -I.. -I../mips -I/home/tonyjih/gh_retrogame_toolchain/mipsel-linux-gcc/usr/mipsel-buildroot-linux-uclibc/sysroot/usr/include/SDL
 DEFS        := -DGCW_ZERO -DMIPS_XBURST -DLOAD_ALL_ROM                        \
                -DGIT_VERSION=$(shell git describe --always)
 HAS_MIPS32R2 := $(shell echo | $(CC) -dM -E - |grep _MIPS_ARCH_MIPS32R2)
