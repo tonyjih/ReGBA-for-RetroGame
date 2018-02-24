@@ -4,7 +4,7 @@
 #include "port.h"
 
 #define GCW0_SCREEN_WIDTH  320
-#define GCW0_SCREEN_HEIGHT 240
+#define GCW0_SCREEN_HEIGHT 480
 
 extern SDL_Surface* GBAScreenSurface;
 extern SDL_Surface* OutputSurface;

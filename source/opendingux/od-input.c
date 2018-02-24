@@ -22,7 +22,7 @@
 uint_fast8_t FastForwardFrameskip = 0;
 
 uint32_t PerGameFastForwardTarget = 0;
-uint32_t FastForwardTarget = 4; // 6x by default
+uint32_t FastForwardTarget = 4; // 4; 6x by default
 
 uint32_t PerGameAnalogSensitivity = 0;
 uint32_t AnalogSensitivity = 0; // require 32256/32767 of the axis by default

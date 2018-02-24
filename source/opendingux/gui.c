@@ -1536,13 +1536,16 @@ u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 
 		ReGBA_VideoFlip();
 		
-		// Wait. (This is for platforms on which flips don't wait for vertical
+    // Wait. (This is for platforms on which flips don't wait for vertical
 		// sync.)
 		usleep(5000);
 
-		// Get input.
-		enum GUI_Action Action = GetGUIAction();
-		
+    // Get input.
+    enum GUI_Action Action = GetGUIAction();
+    if(Action == GUI_ACTION_NONE){
+      continue;
+    }
+
 		switch (Action)
 		{
 			case GUI_ACTION_ENTER:
@@ -1599,8 +1602,9 @@ u32 ReGBA_Menu(enum ReGBA_MenuEntryReason EntryReason)
 				break;
 
 			case GUI_ACTION_ALTERNATE:
-				if (IsGameLoaded && ActiveMenu->AlternateVersion != NULL)
+				if (IsGameLoaded && ActiveMenu->AlternateVersion != NULL) {
 					ActiveMenu = ActiveMenu->AlternateVersion;
+        }
 				break;
 
 			default:
