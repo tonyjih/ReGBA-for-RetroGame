@@ -806,7 +806,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			         h = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch + rightCol));
 
 			// -- Row 2 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch) = likely(a == e)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(a == e)
 				? a
 				: AverageQuarters3_1(e, a);
 
@@ -817,7 +817,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t a1b3 = likely(a == b)
 				? a
 				: SubpixelRGB1_3(a, b);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch + 2) = /* in Y */ likely(a1b3 == e1f3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(a1b3 == e1f3)
 				? a1b3
 				: AverageQuarters3_1(/* in X, bottom */ e1f3, /* in X, top */ a1b3);
 
@@ -828,7 +828,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t bc = likely(b == c)
 				? b
 				: SubpixelRGB1_1(b, c);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch + 4) = /* in Y */ likely(bc == fg)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(bc == fg)
 				? bc
 				: AverageQuarters3_1(/* in X, bottom */ fg, /* in X, top */ bc);
 
@@ -839,7 +839,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t c3d1 = likely(c == d)
 				? c
 				: SubpixelRGB3_1(c, d);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch + 6) = /* in Y */ likely(g3h1 == c3d1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == c3d1)
 				? c3d1
 				: AverageQuarters3_1(/* in X, bottom */ g3h1, /* in X, top */ c3d1);
 
@@ -851,7 +851,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			         l = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 2 + rightCol));
 
 			// -- Row 3 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(e == i)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4) = likely(e == i)
 				? e
 				: Average(e, i);
 
@@ -859,7 +859,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t i1j3 = likely(i == j)
 				? i
 				: SubpixelRGB1_3(i, j);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(e1f3 == i1j3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 2) = /* in Y */ likely(e1f3 == i1j3)
 				? e1f3
 				: Average(e1f3, i1j3);
 
@@ -867,7 +867,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t jk = likely(j == k)
 				? j
 				: SubpixelRGB1_1(j, k);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(fg == jk)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 4) = /* in Y */ likely(fg == jk)
 				? fg
 				: Average(fg, jk);
 
@@ -875,7 +875,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t k3l1 = likely(k == l)
 				? k
 				: SubpixelRGB3_1(k, l);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == k3l1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 6) = /* in Y */ likely(g3h1 == k3l1)
 				? g3h1
 				: Average(g3h1, k3l1);
 
@@ -887,7 +887,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			         p = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 3 + rightCol));
 
 			// -- Row 4 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3) = likely(i == m)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6) = likely(i == m)
 				? i
 				: AverageQuarters3_1(i, m);
 
@@ -895,7 +895,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t m1n3 = likely(m == n)
 				? m
 				: SubpixelRGB1_3(m, n);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 2) = /* in Y */ likely(i1j3 == m1n3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 2) = /* in Y */ likely(i1j3 == m1n3)
 				? i1j3
 				: AverageQuarters3_1(/* in X, top */ i1j3, /* in X, bottom */ m1n3);
 
@@ -903,7 +903,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t no = likely(n == o)
 				? n
 				: SubpixelRGB1_1(n, o);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 4) = /* in Y */ likely(jk == no)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 4) = /* in Y */ likely(jk == no)
 				? jk
 				: AverageQuarters3_1(/* in X, top */ jk, /* in X, bottom */ no);
 
@@ -911,7 +911,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 			uint16_t o3p1 = likely(o == p)
 				? o
 				: SubpixelRGB3_1(o, p);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 6) = /* in Y */ likely(k3l1 == o3p1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 6) = /* in Y */ likely(k3l1 == o3p1)
 				? k3l1
 				: AverageQuarters3_1(/* in X, top */ k3l1, /* in X, bottom */ o3p1);
 
@@ -922,7 +922,7 @@ static inline void gba_upscale_aspect_subpixel(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 2 whole lines of source and 3 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 2 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 3 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 7 * dst_pitch);
 	}
 
 	if (src_y % 3 == 1)
@@ -1044,7 +1044,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			         h = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch + rightCol));
 
 			// -- Row 2 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch) = likely(a == e)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(a == e)
 				? a
 				: AverageQuarters3_1(e, a);
 
@@ -1055,7 +1055,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t a1b3 = likely(a == b)
 				? a
 				: AverageQuarters3_1(b, a);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch + 2) = /* in Y */ likely(a1b3 == e1f3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(a1b3 == e1f3)
 				? a1b3
 				: AverageQuarters3_1(/* in X, bottom */ e1f3, /* in X, top */ a1b3);
 
@@ -1066,7 +1066,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t bc = likely(b == c)
 				? b
 				: Average(b, c);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch + 4) = /* in Y */ likely(bc == fg)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(bc == fg)
 				? bc
 				: AverageQuarters3_1(/* in X, bottom */ fg, /* in X, top */ bc);
 
@@ -1077,7 +1077,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t c3d1 = likely(c == d)
 				? c
 				: AverageQuarters3_1(c, d);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch + 6) = /* in Y */ likely(g3h1 == c3d1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == c3d1)
 				? c3d1
 				: AverageQuarters3_1(/* in X, bottom */ g3h1, /* in X, top */ c3d1);
 
@@ -1089,7 +1089,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			         l = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 2 + rightCol));
 
 			// -- Row 3 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2) = likely(e == i)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4) = likely(e == i)
 				? e
 				: Average(e, i);
 
@@ -1097,7 +1097,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t i1j3 = likely(i == j)
 				? i
 				: AverageQuarters3_1(j, i);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 2) = /* in Y */ likely(e1f3 == i1j3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 2) = /* in Y */ likely(e1f3 == i1j3)
 				? e1f3
 				: Average(e1f3, i1j3);
 
@@ -1105,7 +1105,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t jk = likely(j == k)
 				? j
 				: Average(j, k);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 4) = /* in Y */ likely(fg == jk)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 4) = /* in Y */ likely(fg == jk)
 				? fg
 				: Average(fg, jk);
 
@@ -1113,7 +1113,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t k3l1 = likely(k == l)
 				? k
 				: AverageQuarters3_1(k, l);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 2 + 6) = /* in Y */ likely(g3h1 == k3l1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 4 + 6) = /* in Y */ likely(g3h1 == k3l1)
 				? g3h1
 				: Average(g3h1, k3l1);
 
@@ -1125,7 +1125,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			         p = bgr555_to_rgb565_16(*(uint16_t*) ((uint8_t*) from + src_pitch * 3 + rightCol));
 
 			// -- Row 4 pixel 1 (X = 0) --
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3) = likely(i == m)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6) = likely(i == m)
 				? i
 				: AverageQuarters3_1(i, m);
 
@@ -1133,7 +1133,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t m1n3 = likely(m == n)
 				? m
 				: AverageQuarters3_1(n, m);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 2) = /* in Y */ likely(i1j3 == m1n3)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 2) = /* in Y */ likely(i1j3 == m1n3)
 				? i1j3
 				: AverageQuarters3_1(/* in X, top */ i1j3, /* in X, bottom */ m1n3);
 
@@ -1141,7 +1141,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t no = likely(n == o)
 				? n
 				: Average(n, o);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 4) = /* in Y */ likely(jk == no)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 4) = /* in Y */ likely(jk == no)
 				? jk
 				: AverageQuarters3_1(/* in X, top */ jk, /* in X, bottom */ no);
 
@@ -1149,7 +1149,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 			uint16_t o3p1 = likely(o == p)
 				? o
 				: AverageQuarters3_1(o, p);
-			*(uint16_t*) ((uint8_t*) to + dst_pitch * 3 + 6) = /* in Y */ likely(k3l1 == o3p1)
+			*(uint16_t*) ((uint8_t*) to + dst_pitch * 6 + 6) = /* in Y */ likely(k3l1 == o3p1)
 				? k3l1
 				: AverageQuarters3_1(/* in X, top */ k3l1, /* in X, bottom */ o3p1);
 
@@ -1160,7 +1160,7 @@ static inline void gba_upscale_aspect_bilinear(uint16_t *to, uint16_t *from,
 		// Skip past the waste at the end of the first line, if any,
 		// then past 2 whole lines of source and 3 of destination.
 		from = (uint16_t*) ((uint8_t*) from + src_skip + 2 * src_pitch);
-		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 3 * dst_pitch);
+		to   = (uint16_t*) ((uint8_t*) to   + dst_skip + 7 * dst_pitch);
 	}
 
 	if (src_y % 3 == 1)
