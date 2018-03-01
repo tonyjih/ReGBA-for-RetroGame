@@ -19,14 +19,14 @@
 
 #include "common.h"
 
-#define COLOR_BACKGROUND       RGB888_TO_RGB565(  0,  48,   0)
+#define COLOR_BACKGROUND       RGB888_TO_RGB565(  0,  0,   48)
 #define COLOR_ERROR_BACKGROUND RGB888_TO_RGB565( 64,   0,   0)
-#define COLOR_INACTIVE_TEXT    RGB888_TO_RGB565( 64, 160,  64)
+#define COLOR_INACTIVE_TEXT    RGB888_TO_RGB565( 64, 64,  160)
 #define COLOR_INACTIVE_OUTLINE RGB888_TO_RGB565(  0,   0,   0)
 #define COLOR_ACTIVE_TEXT      RGB888_TO_RGB565(255, 255, 255)
 #define COLOR_ACTIVE_OUTLINE   RGB888_TO_RGB565(  0,   0,   0)
-#define COLOR_TITLE_TEXT       RGB888_TO_RGB565(128, 255, 128)
-#define COLOR_TITLE_OUTLINE    RGB888_TO_RGB565(  0,  96,   0)
+#define COLOR_TITLE_TEXT       RGB888_TO_RGB565(128, 128, 255)
+#define COLOR_TITLE_OUTLINE    RGB888_TO_RGB565(  0,  0,   96)
 #define COLOR_ERROR_TEXT       RGB888_TO_RGB565(255,  64,  64)
 #define COLOR_ERROR_OUTLINE    RGB888_TO_RGB565( 80,   0,   0)
 
@@ -1176,11 +1176,11 @@ static struct MenuEntry DisplayMenu_FPSCounter = {
 
 static struct MenuEntry PerGameDisplayMenu_ScaleMode = {
 	ENTRY_OPTION("image_size", "Image scaling", &PerGameScaleMode),
-	.ChoiceCount = 9, .Choices = { { "No override", "" }, { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
+	.ChoiceCount = 10, .Choices = { { "No override", "" }, { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" },{ "Progressive", "progressive" }, { "Hardware", "hardware" } }
 };
 static struct MenuEntry DisplayMenu_ScaleMode = {
 	ENTRY_OPTION("image_size", "Image scaling", &ScaleMode),
-	.ChoiceCount = 8, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
+	.ChoiceCount = 9, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" },{ "Progressive", "progressive" }, { "Hardware", "hardware" } }
 };
 
 static struct MenuEntry PerGameDisplayMenu_Frameskip = {

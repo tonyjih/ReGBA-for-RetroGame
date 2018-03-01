@@ -80,7 +80,7 @@ void SetMenuResolution()
 #ifdef GCW_ZERO
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_UnlockSurface(OutputSurface);
-	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE | SDL_DOUBLEBUF);
+	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE);
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_LockSurface(OutputSurface);
 #endif
@@ -98,13 +98,7 @@ void SetGameResolution()
 	}
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_UnlockSurface(OutputSurface);
-	OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE |
-#ifdef SDL_TRIPLEBUF
-		SDL_TRIPLEBUF
-#else
-		SDL_DOUBLEBUF
-#endif
-		);
+	OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE);
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_LockSurface(OutputSurface);
 #endif
@@ -1363,7 +1357,30 @@ static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
 	}
 }
+static inline void gba_render_progressive(uint16_t* Dest, uint16_t* Src,
+	uint32_t SrcPitch, uint32_t DestPitch)
+{
+	Dest = (uint16_t*) ((uint8_t*) Dest
+		+ ((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT * 2)) / 2 * DestPitch)
+		+ ((GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH) / 2 * sizeof(uint16_t))
+	);
+	uint32_t SrcSkip = SrcPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
+	uint32_t DestSkip = DestPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
 
+	uint32_t X, Y;
+	for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
+	{
+		for (X = 0; X < GBA_SCREEN_WIDTH * sizeof(uint16_t) / sizeof(uint32_t); X++)
+		{
+			*(uint32_t*) Dest = bgr555_to_rgb565(*(uint32_t*) Src);
+			*(uint32_t*) (Dest + DestPitch/2) = bgr555_to_rgb565(*(uint32_t*) Src);
+			Dest += 2;
+			Src += 2;
+		}
+		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip);
+		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
+	}
+}
 static inline void gba_convert(uint16_t* Dest, uint16_t* Src,
 	uint32_t SrcPitch, uint32_t DestPitch)
 {
@@ -1440,6 +1457,7 @@ void gba_render_half(uint16_t* Dest, uint16_t* Src, uint32_t DestX, uint32_t Des
 		}
 		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip + SrcPitch);
 		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip);
+		Dest+=320;
 	}
 }
 
@@ -1448,6 +1466,7 @@ void ApplyScaleMode(video_scale_type NewMode)
 	switch (NewMode)
 	{
 		case unscaled:
+		case unscaled_progressive:
 			// Either show the border
 			if (BorderSurface != NULL)
 			{
@@ -1499,7 +1518,10 @@ void ReGBA_RenderScreen(void)
 			case unscaled:
 				gba_render(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
-
+			case unscaled_progressive:
+				gba_render_progressive(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
+			
+			break;
 			case fullscreen:
 				gba_upscale(OutputSurface->pixels, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
@@ -1723,13 +1745,13 @@ void PrintString(const char* String, uint16_t TextColor,
 		switch (VerticalAlignment)
 		{
 			case TOP:
-				LineY = Y + Cut * _font_height;
+				LineY = Y*2 + Cut * _font_height*2;
 				break;
 			case MIDDLE:
-				LineY = Y + (Height - CutCount * _font_height) / 2 + Cut * _font_height;
+				LineY = Y*2 + (Height - CutCount * _font_height) / 2 + Cut * _font_height*2;
 				break;
 			case BOTTOM:
-				LineY = (Y + Height) - (CutCount - Cut) * _font_height;
+				LineY = (Y*2 + Height) - (CutCount - Cut) * _font_height*2;
 				break;
 			default:
 				LineY = 0; /* shouldn't happen */
@@ -1750,7 +1772,7 @@ void PrintString(const char* String, uint16_t TextColor,
 				for (glyph_column = 0; glyph_column < glyph_width; glyph_column++)
 				{
 					if ((current_halfword >> (15 - glyph_column)) & 0x01)
-						*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) = TextColor;
+						*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row * 2) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) = TextColor;
 				}
 			}
 
@@ -1854,8 +1876,9 @@ static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
 			Line = "File action ongoing";
 			break;
 	}
+	
 	SDL_FillRect(OutputSurface, NULL, COLOR_PROGRESS_BACKGROUND);
-
+	//memset(OutputSurface->pixels, 0 ,320*480*2);
 	SDL_Rect TopLine = { (GCW0_SCREEN_WIDTH - PROGRESS_WIDTH) / 2, (GCW0_SCREEN_HEIGHT - PROGRESS_HEIGHT) / 2, PROGRESS_WIDTH, 1 };
 	SDL_FillRect(OutputSurface, &TopLine, COLOR_PROGRESS_OUTLINE);
 

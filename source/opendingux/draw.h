@@ -31,6 +31,8 @@ typedef enum
   scaled_aspect_subpixel,
   fullscreen_subpixel,
   unscaled,
+  unscaled_progressive,
+  
   hardware
 } video_scale_type;
 
