@@ -1502,7 +1502,7 @@ void ScaleModeUnapplied()
 }
 
 void ReGBA_RenderScreen(void)
-{
+{	
 	if (ReGBA_IsRenderingNextFrame())
 	{
 		Stats.TotalRenderedFrames++;
@@ -1783,6 +1783,69 @@ void PrintString(const char* String, uint16_t TextColor,
 	free(Cuts);
 }
 
+void PrintStringFillBG(const char* String, uint16_t TextColor,
+	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
+	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment)
+{
+	struct StringCut* Cuts = malloc((Height / _font_height) * sizeof(struct StringCut));
+	uint32_t CutCount = CutString(String, Width, Cuts, Height / _font_height), Cut;
+	if (CutCount > Height / _font_height)
+		CutCount = Height / _font_height;
+
+	for (Cut = 0; Cut < CutCount; Cut++)
+	{
+		uint32_t TextWidth = GetSectionRenderedWidth(String, Cuts[Cut].Start, Cuts[Cut].End);
+		uint32_t LineX, LineY;
+		switch (HorizontalAlignment)
+		{
+			case LEFT:   LineX = X;                           break;
+			case CENTER: LineX = X + (Width - TextWidth) / 2; break;
+			case RIGHT:  LineX = (X + Width) - TextWidth;     break;
+			default:     LineX = 0; /* shouldn't happen */    break;
+		}
+		switch (VerticalAlignment)
+		{
+			case TOP:
+				LineY = Y*2 + Cut * _font_height*2;
+				break;
+			case MIDDLE:
+				LineY = Y*2 + (Height - CutCount * _font_height) / 2 + Cut * _font_height*2;
+				break;
+			case BOTTOM:
+				LineY = (Y*2 + Height) - (CutCount - Cut) * _font_height*2;
+				break;
+			default:
+				LineY = 0; /* shouldn't happen */
+				break;
+		}
+
+		uint32_t Cur;
+		for (Cur = Cuts[Cut].Start; Cur < Cuts[Cut].End; Cur++)
+		{
+			uint32_t glyph_offset = (uint32_t) String[Cur] * _font_height;
+			uint32_t glyph_width = _font_width[(uint8_t) String[Cur]];
+			uint32_t glyph_column, glyph_row;
+			uint16_t current_halfword;
+
+			for(glyph_row = 0; glyph_row < _font_height; glyph_row++, glyph_offset++)
+			{
+				current_halfword = _font_bits[glyph_offset];
+				for (glyph_column = 0; glyph_column < glyph_width; glyph_column++)
+				{
+					if ((current_halfword >> (15 - glyph_column)) & 0x01)
+						*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row * 2) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) = TextColor;
+					else
+						*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row * 2) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) = 0;
+				}
+			}
+
+			LineX += glyph_width;
+		}
+	}
+
+	free(Cuts);
+}
+
 uint32_t GetRenderedWidth(const char* str)
 {
 	struct StringCut* Cuts = malloc(sizeof(struct StringCut));
@@ -1826,6 +1889,19 @@ void PrintStringOutline(const char* String, uint16_t TextColor, uint16_t Outline
 			if (!(sx == 1 && sy == 1))
 				PrintString(String, OutlineColor, Dest, DestPitch, X + sx, Y + sy, Width - 2, Height - 2, HorizontalAlignment, VerticalAlignment);
 	PrintString(String, TextColor, Dest, DestPitch, X + 1, Y + 1, Width - 2, Height - 2, HorizontalAlignment, VerticalAlignment);
+}
+
+
+void PrintStringOutlineFillBG(const char* String, uint16_t TextColor, uint16_t OutlineColor,
+	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
+	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment)
+{
+	uint32_t sx, sy;
+	for (sx = 0; sx <= 2; sx++)
+		for (sy = 0; sy <= 2; sy++)
+			if (!(sx == 1 && sy == 1))
+				PrintStringFillBG(String, OutlineColor, Dest, DestPitch, X + sx, Y + sy, Width - 2, Height - 2, HorizontalAlignment, VerticalAlignment);
+	PrintStringFillBG(String, TextColor, Dest, DestPitch, X + 1, Y + 1, Width - 2, Height - 2, HorizontalAlignment, VerticalAlignment);
 }
 
 static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
@@ -1878,7 +1954,7 @@ static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
 	}
 	
 	SDL_FillRect(OutputSurface, NULL, COLOR_PROGRESS_BACKGROUND);
-	//memset(OutputSurface->pixels, 0 ,320*480*2);
+	//memset(OutputSurface->pixels, 0, OutputSurface->pitch * GCW0_SCREEN_HEIGHT);
 	SDL_Rect TopLine = { (GCW0_SCREEN_WIDTH - PROGRESS_WIDTH) / 2, (GCW0_SCREEN_HEIGHT - PROGRESS_HEIGHT) / 2, PROGRESS_WIDTH, 1 };
 	SDL_FillRect(OutputSurface, &TopLine, COLOR_PROGRESS_OUTLINE);
 

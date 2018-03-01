@@ -71,10 +71,18 @@ void PrintString(const char* String, uint16_t TextColor,
 	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
 	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment);
 
+void PrintStringFillBG(const char* String, uint16_t TextColor,
+	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
+	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment);
+	
 void PrintStringOutline(const char* String, uint16_t TextColor, uint16_t OutlineColor,
 	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
 	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment);
 
+void PrintStringOutlineFillBG(const char* String, uint16_t TextColor, uint16_t OutlineColor,
+	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
+	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment);
+	
 extern uint32_t GetRenderedWidth(const char* str);
 
 extern uint32_t GetRenderedHeight(const char* str);
