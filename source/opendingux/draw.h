@@ -31,7 +31,6 @@ typedef enum
   scaled_aspect_subpixel,
   fullscreen_subpixel,
   unscaled,
-  unscaled_progressive,
   
   hardware
 } video_scale_type;
@@ -50,6 +49,10 @@ enum VerticalAlignment {
 
 extern video_scale_type PerGameScaleMode;
 extern video_scale_type ScaleMode;
+
+extern uint32_t PerGameProgressiveMode;
+extern uint32_t ProgressiveMode;
+
 
 void init_video();
 extern bool ApplyBorder(const char* Filename);

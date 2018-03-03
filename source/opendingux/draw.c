@@ -42,6 +42,9 @@ SDL_Surface *BorderSurface = NULL;
 video_scale_type PerGameScaleMode = 0;
 video_scale_type ScaleMode = scaled_aspect;
 
+uint32_t PerGameProgressiveMode = 0;
+uint32_t ProgressiveMode = false;
+
 #define COLOR_PROGRESS_BACKGROUND   RGB888_TO_RGB565(  0,   0,   0)
 #define COLOR_PROGRESS_TEXT_CONTENT RGB888_TO_RGB565(255, 255, 255)
 #define COLOR_PROGRESS_TEXT_OUTLINE RGB888_TO_RGB565(  0,   0,   0)
@@ -1337,6 +1340,8 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 	uint32_t SrcPitch, uint32_t DestPitch)
 {
+	uint32_t progressive = ResolveSetting(ProgressiveMode, PerGameProgressiveMode);
+
 	Dest = (uint16_t*) ((uint8_t*) Dest
 		+ ((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT * 2)) / 2 * DestPitch)
 		+ ((GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH) / 2 * sizeof(uint16_t))
@@ -1350,6 +1355,8 @@ static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 		for (X = 0; X < GBA_SCREEN_WIDTH * sizeof(uint16_t) / sizeof(uint32_t); X++)
 		{
 			*(uint32_t*) Dest = bgr555_to_rgb565(*(uint32_t*) Src);
+			if (progressive)
+				*(uint32_t*) (Dest + DestPitch/2) = bgr555_to_rgb565(*(uint32_t*) Src);
 			Dest += 2;
 			Src += 2;
 		}
@@ -1357,30 +1364,7 @@ static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
 	}
 }
-static inline void gba_render_progressive(uint16_t* Dest, uint16_t* Src,
-	uint32_t SrcPitch, uint32_t DestPitch)
-{
-	Dest = (uint16_t*) ((uint8_t*) Dest
-		+ ((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT * 2)) / 2 * DestPitch)
-		+ ((GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH) / 2 * sizeof(uint16_t))
-	);
-	uint32_t SrcSkip = SrcPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
-	uint32_t DestSkip = DestPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
 
-	uint32_t X, Y;
-	for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
-	{
-		for (X = 0; X < GBA_SCREEN_WIDTH * sizeof(uint16_t) / sizeof(uint32_t); X++)
-		{
-			*(uint32_t*) Dest = bgr555_to_rgb565(*(uint32_t*) Src);
-			*(uint32_t*) (Dest + DestPitch/2) = bgr555_to_rgb565(*(uint32_t*) Src);
-			Dest += 2;
-			Src += 2;
-		}
-		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip);
-		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
-	}
-}
 static inline void gba_convert(uint16_t* Dest, uint16_t* Src,
 	uint32_t SrcPitch, uint32_t DestPitch)
 {
@@ -1466,7 +1450,6 @@ void ApplyScaleMode(video_scale_type NewMode)
 	switch (NewMode)
 	{
 		case unscaled:
-		case unscaled_progressive:
 			// Either show the border
 			if (BorderSurface != NULL)
 			{
@@ -1518,8 +1501,6 @@ void ReGBA_RenderScreen(void)
 			case unscaled:
 				gba_render(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
-			case unscaled_progressive:
-				gba_render_progressive(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
 			
 			break;
 			case fullscreen:

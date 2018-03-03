@@ -1176,11 +1176,20 @@ static struct MenuEntry DisplayMenu_FPSCounter = {
 
 static struct MenuEntry PerGameDisplayMenu_ScaleMode = {
 	ENTRY_OPTION("image_size", "Image scaling", &PerGameScaleMode),
-	.ChoiceCount = 10, .Choices = { { "No override", "" }, { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" },{ "Progressive", "progressive" }, { "Hardware", "hardware" } }
+	.ChoiceCount = 9, .Choices = { { "No override", "" }, { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
 };
 static struct MenuEntry DisplayMenu_ScaleMode = {
 	ENTRY_OPTION("image_size", "Image scaling", &ScaleMode),
-	.ChoiceCount = 9, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" },{ "Progressive", "progressive" }, { "Hardware", "hardware" } }
+	.ChoiceCount = 8, .Choices = { { "Aspect, fast", "aspect" }, { "Full, fast", "fullscreen" }, { "Aspect, bilinear", "aspect_bilinear" }, { "Full, bilinear", "fullscreen_bilinear" }, { "Aspect, sub-pixel", "aspect_subpixel" }, { "Full, sub-pixel", "fullscreen_subpixel" }, { "None", "original" }, { "Hardware", "hardware" } }
+};
+static struct MenuEntry PerGameDisplayMenu_ProgressiveMode = {
+	ENTRY_OPTION("progressive_mode", "Progressive mode", &PerGameProgressiveMode),
+	.ChoiceCount = 3, .Choices = { { "No override", "" }, { "False", "false" }, { "True", "true" } }
+};
+
+static struct MenuEntry DisplayMenu_ProgressiveMode = {
+	ENTRY_OPTION("progressive_mode", "Progressive mode", &ProgressiveMode),
+	.ChoiceCount = 2, .Choices = { { "False", "false" }, { "True", "true" } }
 };
 
 static struct MenuEntry PerGameDisplayMenu_Frameskip = {
@@ -1210,7 +1219,7 @@ static struct Menu PerGameDisplayMenu = {
 static struct Menu DisplayMenu = {
 	.Parent = &MainMenu, .Title = "Display settings",
 	.AlternateVersion = &PerGameDisplayMenu,
-	.Entries = { &DisplayMenu_BootSource, &DisplayMenu_FPSCounter, &DisplayMenu_ScaleMode, &DisplayMenu_Frameskip, &DisplayMenu_FastForwardTarget, NULL }
+	.Entries = { &DisplayMenu_BootSource, &DisplayMenu_FPSCounter, &DisplayMenu_ScaleMode,&DisplayMenu_ProgressiveMode, &DisplayMenu_Frameskip, &DisplayMenu_FastForwardTarget, NULL }
 };
 
 // -- Input Settings --
