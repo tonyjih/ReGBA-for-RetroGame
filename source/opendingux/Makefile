@@ -27,7 +27,7 @@ ifneq ($(HAS_MIPS32R2),)
 endif
 
 CFLAGS      := $(SDL_CFLAGS) -mno-abicalls -Wall -Wno-unused-variable \
-               -O2 -fomit-frame-pointer $(DEFS) $(INCLUDE)
+               -Ofast -fomit-frame-pointer $(DEFS) $(INCLUDE)
 ASFLAGS     := $(CFLAGS) -D__ASSEMBLY__
 LDFLAGS     := $(SDL_LIBS) -lpthread -lz -lm -lpng
 

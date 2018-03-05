@@ -111,9 +111,10 @@ bool ApplyBorder(const char* Filename)
 {
 	SDL_Surface* JustLoaded = loadPNG(Filename, GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT);
 	bool Result = false;
+	int y = 0;
 	if (JustLoaded != NULL)
 	{
-		if (JustLoaded->w == GCW0_SCREEN_WIDTH && JustLoaded->h == GCW0_SCREEN_HEIGHT)
+		if (JustLoaded->w == GCW0_SCREEN_WIDTH && JustLoaded->h == GCW0_SCREEN_HEIGHT / 2)	//RS-97 fix
 		{
 			if (BorderSurface != NULL)
 			{
@@ -125,7 +126,19 @@ bool ApplyBorder(const char* Filename)
 			  OutputSurface->format->Gmask,
 			  OutputSurface->format->Bmask,
 			  OutputSurface->format->Amask);
-			SDL_BlitSurface(JustLoaded, NULL, BorderSurface, NULL);
+			//RS-97 fix
+			 SDL_Rect src = { 0,0,JustLoaded->w,1};
+			 SDL_Rect dst = { 0,0,0,0};
+			 
+			 for (y =0; y < JustLoaded->h; y++)
+			 {
+				src.y = y;
+				dst.y = y*2;
+				SDL_BlitSurface(JustLoaded, &src, BorderSurface, &dst);
+				dst.y = y * 2 + 1;
+				SDL_BlitSurface(JustLoaded, &src, BorderSurface, &dst);
+			 }
+			//SDL_BlitSurface(JustLoaded, NULL, BorderSurface, NULL);
 			Result = true;
 		}
 		SDL_FreeSurface(JustLoaded);
