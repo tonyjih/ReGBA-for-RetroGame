@@ -95,6 +95,8 @@ void ReGBA_VideoFlip();
 void SetMenuResolution();
 
 void SetGameResolution();
+void plat_quick_copy(SDL_Surface *src, SDL_Surface *dst);
+void plat_quick_fill(SDL_Surface *dst, uint32_t color);
 
 /*
  * Returns a new allocation containing a copy of the GBA screen. Its pixels

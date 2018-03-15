@@ -42,7 +42,7 @@ SDL_Surface *BorderSurface = NULL;
 video_scale_type PerGameScaleMode = 0;
 video_scale_type ScaleMode = scaled_aspect;
 
-uint32_t PerGameProgressiveMode = 0;
+uint32_t PerGameProgressiveMode = false;
 uint32_t ProgressiveMode = false;
 
 #define COLOR_PROGRESS_BACKGROUND   RGB888_TO_RGB565(  0,   0,   0)
@@ -52,7 +52,7 @@ uint32_t ProgressiveMode = false;
 #define COLOR_PROGRESS_OUTLINE      RGB888_TO_RGB565(255, 255, 255)
 
 #define PROGRESS_WIDTH 240
-#define PROGRESS_HEIGHT 18
+#define PROGRESS_HEIGHT 36
 
 static bool InFileAction = false;
 static enum ReGBA_FileAction CurrentFileAction;
@@ -83,7 +83,7 @@ void SetMenuResolution()
 #ifdef GCW_ZERO
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_UnlockSurface(OutputSurface);
-	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE);
+	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_SWSURFACE);
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_LockSurface(OutputSurface);
 #endif
@@ -151,12 +151,13 @@ bool ApplyBorder(const char* Filename)
  *   Scaler copyright (C) 2013 by Paul Cercueil                            *
  *   paul@crapouillou.net                                                  *
  ***************************************************************************/
-static inline uint32_t bgr555_to_rgb565(uint32_t px)
-{
-	return ((px & 0x7c007c00) >> 10)
-	  | ((px & 0x03e003e0) << 1)
-	  | ((px & 0x001f001f) << 11);
-}
+#define bgr555_to_rgb565(px) (((px & 0x7c007c00) >> 10) | ((px & 0x03e003e0) << 1)| ((px & 0x001f001f) << 11))
+// static inline uint32_t bgr555_to_rgb565(uint32_t px)
+// {
+	// return ((px & 0x7c007c00) >> 10)
+	  // | ((px & 0x03e003e0) << 1)
+	  // | ((px & 0x001f001f) << 11);
+// }
 
 /***************************************************************************
  *   16-bit I/O version used by the sub-pixel and bilinear scalers         *
@@ -1490,6 +1491,7 @@ static inline void gba_upscale_bilinear(uint16_t *to, uint16_t *from,
 	}
 }
 
+#if 0
 static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 	uint32_t SrcPitch, uint32_t DestPitch)
 {
@@ -1515,6 +1517,42 @@ static inline void gba_render(uint16_t* Dest, uint16_t* Src,
 		}
 		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip);
 		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
+	}
+}
+#endif
+
+static inline void gba_render_fast(uint32_t* Dest, uint32_t* Src)
+{
+	const uint32_t progressive = ResolveSetting(ProgressiveMode, PerGameProgressiveMode);
+	const uint32_t DestSkip = 200;	//160 + 40
+	Dest +=  12820;
+
+	uint32_t X, Y;
+	if (progressive)
+	{	
+		for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
+		{
+			for (X = 0; X < GBA_SCREEN_WIDTH / 2; X++)
+			{
+				*Dest = *(Dest + 160) = bgr555_to_rgb565(*Src);
+				Dest++;	
+				Src++;
+			}
+			Dest += DestSkip;
+		}
+	}
+	else
+	{
+		for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
+		{
+			for (X = 0; X < GBA_SCREEN_WIDTH / 2; X++)
+			{
+				*Dest++ = bgr555_to_rgb565(*Src);
+				Src++;
+			}
+			Dest += DestSkip;
+		}
+		
 	}
 }
 
@@ -1553,7 +1591,7 @@ static inline void gba_convert(uint16_t* Dest, uint16_t* Src,
  *   Dest: A pointer to the pixels member of a surface to be filled with the
  *     downscaled GBA image. The pixel format of this surface is RGB 565.
  */
-void gba_render_half(uint16_t* Dest, uint16_t* Src, uint32_t DestX, uint32_t DestY,
+inline void gba_render_half(uint16_t* Dest, uint16_t* Src, uint32_t DestX, uint32_t DestY,
 	uint32_t SrcPitch, uint32_t DestPitch)
 {
 	Dest = (uint16_t*) ((uint8_t*) Dest
@@ -1598,7 +1636,7 @@ void gba_render_half(uint16_t* Dest, uint16_t* Src, uint32_t DestX, uint32_t Des
 	}
 }
 
-void ApplyScaleMode(video_scale_type NewMode)
+inline void ApplyScaleMode(video_scale_type NewMode)
 {
 	switch (NewMode)
 	{
@@ -1608,7 +1646,7 @@ void ApplyScaleMode(video_scale_type NewMode)
 			{
 				if (SDL_MUSTLOCK(OutputSurface))
 					SDL_UnlockSurface(OutputSurface);
-				SDL_BlitSurface(BorderSurface, NULL, OutputSurface, NULL);
+				plat_quick_copy(BorderSurface, OutputSurface);
 				if (SDL_MUSTLOCK(OutputSurface))
 					SDL_LockSurface(OutputSurface);
 			}
@@ -1632,12 +1670,12 @@ void ApplyScaleMode(video_scale_type NewMode)
 	}
 }
 
-void ScaleModeUnapplied()
+inline void ScaleModeUnapplied()
 {
 	FramesBordered = 0;
 }
 
-void ReGBA_RenderScreen(void)
+inline void ReGBA_RenderScreen(void)
 {	
 	if (ReGBA_IsRenderingNextFrame())
 	{
@@ -1652,10 +1690,8 @@ void ReGBA_RenderScreen(void)
 		switch (ResolvedScaleMode)
 		{
 			case unscaled:
-				gba_render(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
+				gba_render_fast(OutputSurface->pixels, GBAScreenSurface->pixels);
 				break;
-			
-			break;
 			case fullscreen:
 				gba_upscale(OutputSurface->pixels, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
@@ -1753,7 +1789,7 @@ void ReGBA_RenderScreen(void)
 		AudioFrameskipControl = AudioFrameskip;
 }
 
-u16 *copy_screen()
+inline u16 *copy_screen()
 {
 	u32 pitch = GBAScreenPitch;
 	u16 *copy = malloc(GBA_SCREEN_WIDTH * GBA_SCREEN_HEIGHT * sizeof(uint16_t));
@@ -1771,7 +1807,7 @@ u16 *copy_screen()
 	return copy;
 }
 
-void blit_to_screen(u16 *src, u32 w, u32 h, u32 dest_x, u32 dest_y)
+inline void blit_to_screen(u16 *src, u32 w, u32 h, u32 dest_x, u32 dest_y)
 {	
   u32 pitch = GBAScreenPitch;
   u16 *dest_ptr = GBAScreen;
@@ -1789,7 +1825,7 @@ void blit_to_screen(u16 *src, u32 w, u32 h, u32 dest_x, u32 dest_y)
   }
 }
 
-static uint32_t CutString(const char* String, const uint32_t MaxWidth,
+inline static uint32_t CutString(const char* String, const uint32_t MaxWidth,
 	struct StringCut* Cuts, uint32_t CutsAllocated)
 {
 	uint32_t Cut = 0;
@@ -1848,7 +1884,7 @@ static uint32_t CutString(const char* String, const uint32_t MaxWidth,
 	return Cut + 1;
 }
 
-uint32_t GetSectionRenderedWidth(const char* String, const uint32_t Start, const uint32_t End)
+inline uint32_t GetSectionRenderedWidth(const char* String, const uint32_t Start, const uint32_t End)
 {
 	uint32_t Result = 0, i;
 	for (i = Start; i < End; i++)
@@ -1856,7 +1892,7 @@ uint32_t GetSectionRenderedWidth(const char* String, const uint32_t Start, const
 	return Result;
 }
 
-void PrintString(const char* String, uint16_t TextColor,
+inline void PrintString(const char* String, uint16_t TextColor,
 	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
 	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment)
 {
@@ -1917,7 +1953,7 @@ void PrintString(const char* String, uint16_t TextColor,
 	free(Cuts);
 }
 
-void PrintStringFillBG(const char* String, uint16_t TextColor,
+inline void PrintStringFillBG(const char* String, uint16_t TextColor,
 	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
 	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment)
 {
@@ -1966,10 +2002,8 @@ void PrintStringFillBG(const char* String, uint16_t TextColor,
 				current_halfword = _font_bits[glyph_offset];
 				for (glyph_column = 0; glyph_column < glyph_width; glyph_column++)
 				{
-					if ((current_halfword >> (15 - glyph_column)) & 0x01)
-						*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row * 2) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) = TextColor;
-					else
-						*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row * 2) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) = 0;
+					*(uint16_t*) ((uint8_t*) Dest + (LineY + glyph_row * 2) * DestPitch + (LineX + glyph_column) * sizeof(uint16_t)) =
+					((current_halfword >> (15 - glyph_column)) & 0x01) ? TextColor : 0;
 				}
 			}
 
@@ -1980,7 +2014,7 @@ void PrintStringFillBG(const char* String, uint16_t TextColor,
 	free(Cuts);
 }
 
-uint32_t GetRenderedWidth(const char* str)
+inline uint32_t GetRenderedWidth(const char* str)
 {
 	struct StringCut* Cuts = malloc(sizeof(struct StringCut));
 	uint32_t CutCount = CutString(str, UINT32_MAX, Cuts, 1);
@@ -2008,12 +2042,12 @@ uint32_t GetRenderedWidth(const char* str)
 	return Result;
 }
 
-uint32_t GetRenderedHeight(const char* str)
+inline uint32_t GetRenderedHeight(const char* str)
 {
 	return CutString(str, UINT32_MAX, NULL, 0) * _font_height;
 }
 
-void PrintStringOutline(const char* String, uint16_t TextColor, uint16_t OutlineColor,
+inline void PrintStringOutline(const char* String, uint16_t TextColor, uint16_t OutlineColor,
 	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
 	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment)
 {
@@ -2026,7 +2060,7 @@ void PrintStringOutline(const char* String, uint16_t TextColor, uint16_t Outline
 }
 
 
-void PrintStringOutlineFillBG(const char* String, uint16_t TextColor, uint16_t OutlineColor,
+inline void PrintStringOutlineFillBG(const char* String, uint16_t TextColor, uint16_t OutlineColor,
 	void* Dest, uint32_t DestPitch, uint32_t X, uint32_t Y, uint32_t Width, uint32_t Height,
 	enum HorizontalAlignment HorizontalAlignment, enum VerticalAlignment VerticalAlignment)
 {
@@ -2038,7 +2072,7 @@ void PrintStringOutlineFillBG(const char* String, uint16_t TextColor, uint16_t O
 	PrintStringFillBG(String, TextColor, Dest, DestPitch, X + 1, Y + 1, Width - 2, Height - 2, HorizontalAlignment, VerticalAlignment);
 }
 
-static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
+inline static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
 {
 	char* Line;
 	switch (CurrentFileAction)
@@ -2086,8 +2120,8 @@ static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
 			Line = "File action ongoing";
 			break;
 	}
-	
-	SDL_FillRect(OutputSurface, NULL, COLOR_PROGRESS_BACKGROUND);
+	plat_quick_fill(OutputSurface,COLOR_PROGRESS_BACKGROUND);
+	//SDL_FillRect(OutputSurface, NULL, COLOR_PROGRESS_BACKGROUND);
 	//memset(OutputSurface->pixels, 0, OutputSurface->pitch * GCW0_SCREEN_HEIGHT);
 	SDL_Rect TopLine = { (GCW0_SCREEN_WIDTH - PROGRESS_WIDTH) / 2, (GCW0_SCREEN_HEIGHT - PROGRESS_HEIGHT) / 2, PROGRESS_WIDTH, 1 };
 	SDL_FillRect(OutputSurface, &TopLine, COLOR_PROGRESS_OUTLINE);
@@ -2109,7 +2143,7 @@ static void ProgressUpdateInternal(uint32_t Current, uint32_t Total)
 	ReGBA_VideoFlip();
 }
 
-void ReGBA_ProgressInitialise(enum ReGBA_FileAction Action)
+inline void ReGBA_ProgressInitialise(enum ReGBA_FileAction Action)
 {
 	if (Action == FILE_ACTION_SAVE_BATTERY)
 		return; // Ignore this completely, because it flashes in-game
@@ -2120,7 +2154,7 @@ void ReGBA_ProgressInitialise(enum ReGBA_FileAction Action)
 	ProgressUpdateInternal(0, 1);
 }
 
-void ReGBA_ProgressUpdate(uint32_t Current, uint32_t Total)
+inline void ReGBA_ProgressUpdate(uint32_t Current, uint32_t Total)
 {
 	struct timespec Now, Difference;
 	clock_gettime(CLOCK_MONOTONIC, &Now);
@@ -2134,16 +2168,41 @@ void ReGBA_ProgressUpdate(uint32_t Current, uint32_t Total)
 	}
 }
 
-void ReGBA_ProgressFinalise()
+inline void ReGBA_ProgressFinalise()
 {
 	InFileAction = false;
 }
 
-void ReGBA_VideoFlip()
+inline void ReGBA_VideoFlip()
 {
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_UnlockSurface(OutputSurface);
 	SDL_Flip(OutputSurface);
 	if (SDL_MUSTLOCK(OutputSurface))
 		SDL_LockSurface(OutputSurface);
+}
+
+inline void plat_quick_copy(SDL_Surface *src, SDL_Surface *dst)
+{
+	int x, y;
+	uint32_t *s = src->pixels;
+	uint32_t *d = dst->pixels;
+
+	for(y = 0; y < GCW0_SCREEN_HEIGHT; y++){
+		for(x = 0; x < GCW0_SCREEN_WIDTH / 2; x++){
+			*d++ = *s++;
+		}
+	}
+}
+
+inline void plat_quick_fill(SDL_Surface *dst, uint32_t color)
+{
+	int x, y;
+	uint32_t *d = dst->pixels;
+	color |= (color << 16);
+	for(y = 0; y < GCW0_SCREEN_HEIGHT; y++){
+		for(x = 0; x < GCW0_SCREEN_WIDTH / 2; x++){
+			*d++ = color;
+		}
+	}	
 }

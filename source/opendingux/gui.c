@@ -315,11 +315,12 @@ static void DefaultDisplayValueFunction(struct MenuEntry* DrawnMenuEntry, struct
 
 static void DefaultDisplayBackgroundFunction(struct Menu* ActiveMenu)
 {
-	if (SDL_MUSTLOCK(OutputSurface))
-		SDL_UnlockSurface(OutputSurface);
-	SDL_FillRect(OutputSurface, NULL, COLOR_BACKGROUND);
-	if (SDL_MUSTLOCK(OutputSurface))
-		SDL_LockSurface(OutputSurface);
+	// if (SDL_MUSTLOCK(OutputSurface))
+		// SDL_UnlockSurface(OutputSurface);
+		plat_quick_fill(OutputSurface,COLOR_BACKGROUND);
+	//SDL_FillRect(OutputSurface, NULL, COLOR_BACKGROUND);
+	// if (SDL_MUSTLOCK(OutputSurface))
+		// SDL_LockSurface(OutputSurface);
 }
 
 static void DefaultDisplayDataFunction(struct Menu* ActiveMenu, struct MenuEntry* ActiveMenuEntry)
@@ -513,11 +514,12 @@ static void DisplayHotkeyValue(struct MenuEntry* DrawnMenuEntry, struct MenuEntr
 
 static void DisplayErrorBackgroundFunction(struct Menu* ActiveMenu)
 {
-	if (SDL_MUSTLOCK(OutputSurface))
-		SDL_UnlockSurface(OutputSurface);
-	SDL_FillRect(OutputSurface, NULL, COLOR_ERROR_BACKGROUND);
-	if (SDL_MUSTLOCK(OutputSurface))
-		SDL_LockSurface(OutputSurface);
+	// if (SDL_MUSTLOCK(OutputSurface))
+		// SDL_UnlockSurface(OutputSurface);
+	//SDL_FillRect(OutputSurface, NULL, COLOR_ERROR_BACKGROUND);
+	plat_quick_fill(OutputSurface,COLOR_ERROR_BACKGROUND);
+	// if (SDL_MUSTLOCK(OutputSurface))
+		// SDL_LockSurface(OutputSurface);
 }
 
 static void SavedStateMenuDisplayData(struct Menu* ActiveMenu, struct MenuEntry* ActiveMenuEntry)
@@ -526,7 +528,7 @@ static void SavedStateMenuDisplayData(struct Menu* ActiveMenu, struct MenuEntry*
 
 	gba_render_half((uint16_t*) OutputSurface->pixels, (uint16_t*) ActiveMenu->UserData,
 		GCW0_SCREEN_WIDTH - GBA_SCREEN_WIDTH / 2,
-		GetRenderedHeight(" ") * 3 + 1,
+		GetRenderedHeight(" ") * 6 + 1,
 		GBA_SCREEN_WIDTH * sizeof(uint16_t),
 		OutputSurface->pitch);
 
