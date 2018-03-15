@@ -163,12 +163,13 @@ bool ApplyBorder(const char* Filename)
  *   16-bit I/O version used by the sub-pixel and bilinear scalers         *
  *   (C) 2013 kuwanger                                                     *
  ***************************************************************************/
-static inline uint16_t bgr555_to_rgb565_16(uint16_t px)
-{
-	return ((px & 0x7c00) >> 10)
-	  | ((px & 0x03e0) << 1)
-	  | ((px & 0x001f) << 11);
-}
+#define bgr555_to_rgb565_16(px) (((px & 0x7c00) >> 10) | ((px & 0x03e0) << 1) | ((px & 0x001f) << 11))
+// static inline uint16_t bgr555_to_rgb565_16(uint16_t px)
+// {
+	// return ((px & 0x7c00) >> 10)
+	  // | ((px & 0x03e0) << 1)
+	  // | ((px & 0x001f) << 11);
+// }
 
 // Explaining the magic constants:
 // F7DEh is the mask to remove the lower bit of all color
@@ -1525,8 +1526,7 @@ static inline void gba_render_fast(uint32_t* Dest, uint32_t* Src)
 {
 	const uint32_t progressive = ResolveSetting(ProgressiveMode, PerGameProgressiveMode);
 	const uint32_t DestSkip = 200;	//160 + 40
-	Dest +=  12820;
-
+	Dest += 12820;
 	uint32_t X, Y;
 	if (progressive)
 	{	
@@ -1540,20 +1540,18 @@ static inline void gba_render_fast(uint32_t* Dest, uint32_t* Src)
 			}
 			Dest += DestSkip;
 		}
+		return;
 	}
-	else
+	for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
 	{
-		for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
+		for (X = 0; X < GBA_SCREEN_WIDTH / 2; X++)
 		{
-			for (X = 0; X < GBA_SCREEN_WIDTH / 2; X++)
-			{
-				*Dest++ = bgr555_to_rgb565(*Src);
-				Src++;
-			}
-			Dest += DestSkip;
+			*Dest++ = bgr555_to_rgb565(*Src);
+			Src++;
 		}
-		
+		Dest += DestSkip;
 	}
+		
 }
 
 static inline void gba_convert(uint16_t* Dest, uint16_t* Src,
@@ -1732,7 +1730,6 @@ inline void ReGBA_RenderScreen(void)
 #endif
 		}
 		ReGBA_DisplayFPS();
-
 		ReGBA_VideoFlip();
 
 		while (true)

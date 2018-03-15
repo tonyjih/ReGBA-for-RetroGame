@@ -93,7 +93,9 @@ extern bool ReGBA_AreMenuSettingsEqual(struct Menu* Menu, void* A, void* B);
  * Returns:
  *   The value of the setting being resolved, per-game preferred.
  */
-extern enum OpenDingux_Buttons ResolveButtons(enum OpenDingux_Buttons GlobalValue, enum OpenDingux_Buttons PerGameValue);
+#define ResolveButtons(global,local) (local !=0 ? local : global)
+
+ // extern enum OpenDingux_Buttons ResolveButtons(enum OpenDingux_Buttons GlobalValue, enum OpenDingux_Buttons PerGameValue);
 
 /*
  * Clears per-game setting overrides. Should be called between games after
