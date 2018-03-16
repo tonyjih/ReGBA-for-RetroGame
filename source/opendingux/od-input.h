@@ -119,8 +119,8 @@ extern int16_t GetVerticalAxisValue();
 extern enum GUI_Action GetGUIAction();
 
 #if defined GCW_ZERO
-#  define LEFT_FACE_BUTTON_NAME "X"
-#  define TOP_FACE_BUTTON_NAME "Y"
+#  define LEFT_FACE_BUTTON_NAME "Y"
+#  define TOP_FACE_BUTTON_NAME "X"
 #elif defined DINGOO_A320
 #  define LEFT_FACE_BUTTON_NAME "Y"
 #  define TOP_FACE_BUTTON_NAME "X"
