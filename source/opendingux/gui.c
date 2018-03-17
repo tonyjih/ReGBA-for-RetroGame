@@ -316,11 +316,15 @@ static void DefaultDisplayValueFunction(struct MenuEntry* DrawnMenuEntry, struct
 static void DefaultDisplayBackgroundFunction(struct Menu* ActiveMenu)
 {
 	if (SDL_MUSTLOCK(OutputSurface))
+	{
 		SDL_UnlockSurface(OutputSurface);
 		plat_quick_fill(OutputSurface,COLOR_BACKGROUND);
-	//SDL_FillRect(OutputSurface, NULL, COLOR_BACKGROUND);
-	if (SDL_MUSTLOCK(OutputSurface))
+		//SDL_FillRect(OutputSurface, NULL, COLOR_BACKGROUND);
 		SDL_LockSurface(OutputSurface);
+	}
+	else
+		plat_quick_fill(OutputSurface,COLOR_BACKGROUND);
+		
 }
 
 static void DefaultDisplayDataFunction(struct Menu* ActiveMenu, struct MenuEntry* ActiveMenuEntry)
@@ -515,11 +519,14 @@ static void DisplayHotkeyValue(struct MenuEntry* DrawnMenuEntry, struct MenuEntr
 static void DisplayErrorBackgroundFunction(struct Menu* ActiveMenu)
 {
 	if (SDL_MUSTLOCK(OutputSurface))
+	{
 		SDL_UnlockSurface(OutputSurface);
-	//SDL_FillRect(OutputSurface, NULL, COLOR_ERROR_BACKGROUND);
-	plat_quick_fill(OutputSurface,COLOR_ERROR_BACKGROUND);
-	if (SDL_MUSTLOCK(OutputSurface))
+		plat_quick_fill(OutputSurface,COLOR_ERROR_BACKGROUND);
+		//SDL_FillRect(OutputSurface, NULL, COLOR_BACKGROUND);
 		SDL_LockSurface(OutputSurface);
+	}
+	else
+		plat_quick_fill(OutputSurface,COLOR_ERROR_BACKGROUND);	
 }
 
 static void SavedStateMenuDisplayData(struct Menu* ActiveMenu, struct MenuEntry* ActiveMenuEntry)

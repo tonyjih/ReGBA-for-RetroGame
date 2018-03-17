@@ -18,9 +18,10 @@ HEADERS     := cheats.h ../common.h ../cpu_common.h ../cpu.h draw.h main.h    \
                ../stats.h ../video.h ../zip.h port.h od-sound.h ../sha1.h     \
                imageio.h ../unifont.h od-input.h settings.h
 
-INCLUDE     := -I. -I.. -I../mips -I/home/tonyjih/gh_retrogame_toolchain/mipsel-linux-gcc/usr/mipsel-buildroot-linux-uclibc/sysroot/usr/include/SDL
+INCLUDE     := -I. -I.. -I../mips
 OPTIMIZE =  -O2 -mips32 -march=mips32 -mno-mips16 -fomit-frame-pointer -fno-builtin   \
-            -fno-common -Wno-write-strings -Wno-sign-compare
+            -fno-common -Wno-write-strings -Wno-sign-compare -ffast-math -ftree-vectorize \
+			-funswitch-loops -fno-strict-aliasing
 			
 DEFS        := -DGCW_ZERO -DMIPS_XBURST -DLOAD_ALL_ROM                        \
                -DGIT_VERSION=$(shell git describe --always)

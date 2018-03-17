@@ -82,10 +82,14 @@ void SetMenuResolution()
 {
 #ifdef GCW_ZERO
 	if (SDL_MUSTLOCK(OutputSurface))
+	{
 		SDL_UnlockSurface(OutputSurface);
-	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_SWSURFACE);
-	if (SDL_MUSTLOCK(OutputSurface))
+		OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_SWSURFACE);
 		SDL_LockSurface(OutputSurface);
+		return;
+	}
+	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_SWSURFACE);
+
 #endif
 }
 
@@ -100,10 +104,14 @@ void SetGameResolution()
 		Height = GCW0_SCREEN_HEIGHT;
 	}
 	if (SDL_MUSTLOCK(OutputSurface))
+	{
 		SDL_UnlockSurface(OutputSurface);
-	OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE);
-	if (SDL_MUSTLOCK(OutputSurface))
+		OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE);
 		SDL_LockSurface(OutputSurface);
+		return;
+	}
+	OutputSurface = SDL_SetVideoMode(Width, Height, 16, SDL_HWSURFACE);
+	
 #endif
 }
 
@@ -1643,10 +1651,14 @@ inline void ApplyScaleMode(video_scale_type NewMode)
 			if (BorderSurface != NULL)
 			{
 				if (SDL_MUSTLOCK(OutputSurface))
+				{
 					SDL_UnlockSurface(OutputSurface);
-				plat_quick_copy(BorderSurface, OutputSurface);
-				if (SDL_MUSTLOCK(OutputSurface))
+					plat_quick_copy(BorderSurface, OutputSurface);
 					SDL_LockSurface(OutputSurface);
+				}
+				else
+					plat_quick_copy(BorderSurface, OutputSurface);
+					
 			}
 			// or clear the rest of the screen to prevent image remanence.
 			else
@@ -2173,10 +2185,13 @@ inline void ReGBA_ProgressFinalise()
 inline void ReGBA_VideoFlip()
 {
 	if (SDL_MUSTLOCK(OutputSurface))
+	{
 		SDL_UnlockSurface(OutputSurface);
-	SDL_Flip(OutputSurface);
-	if (SDL_MUSTLOCK(OutputSurface))
+		SDL_Flip(OutputSurface);
 		SDL_LockSurface(OutputSurface);
+		return;
+	}
+	SDL_Flip(OutputSurface);
 }
 
 inline void plat_quick_copy(SDL_Surface *src, SDL_Surface *dst)
