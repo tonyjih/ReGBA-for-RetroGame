@@ -1562,26 +1562,21 @@ static inline void gba_render_fast(uint32_t* Dest, uint32_t* Src)
 		
 }
 
-static inline void gba_convert(uint16_t* Dest, uint16_t* Src,
-	uint32_t SrcPitch, uint32_t DestPitch)
+static inline void gba_convert(uint32_t* Dest, uint32_t* Src)
 {
-	uint32_t SrcSkip = SrcPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
-	uint32_t DestSkip = DestPitch - GBA_SCREEN_WIDTH * sizeof(uint16_t);
-
+	const uint32_t progressive = ResolveSetting(ProgressiveMode, PerGameProgressiveMode);
+	const uint32_t DestSkip = 40;	//160 + 40
 	uint32_t X, Y;
 	for (Y = 0; Y < GBA_SCREEN_HEIGHT; Y++)
 	{
-		for (X = 0; X < GBA_SCREEN_WIDTH * sizeof(uint16_t) / sizeof(uint32_t); X++)
+		for (X = 0; X < GBA_SCREEN_WIDTH / 2; X++)
 		{
-			*(uint32_t*) Dest = bgr555_to_rgb565(*(uint32_t*) Src);
-			Dest += 2;
-			Src += 2;
+			*Dest++ = bgr555_to_rgb565(*Src);
+			Src++;
 		}
-		Src = (uint16_t*) ((uint8_t*) Src + SrcSkip);
-		Dest = (uint16_t*) ((uint8_t*) Dest + DestSkip + DestPitch);
+		Dest += DestSkip;
 	}
 }
-
 /* Downscales an image by half in width and in height; also does color
  * conversion using the function above.
  * Input:
@@ -1737,7 +1732,7 @@ inline void ReGBA_RenderScreen(void)
 
 #ifdef GCW_ZERO
 			case hardware:
-				gba_convert(OutputSurface->pixels, GBAScreen, GBAScreenSurface->pitch, OutputSurface->pitch);
+				gba_convert(OutputSurface->pixels, GBAScreenSurface->pixels);
         break;
 #endif
 		}
