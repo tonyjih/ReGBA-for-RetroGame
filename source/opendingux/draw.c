@@ -18,7 +18,7 @@
  */
 
 #include "common.h"
-
+#include "dma.h"
 struct StringCut {
 	uint32_t Start;  // Starting character index of the cut, inclusive.
 	uint32_t End;    // Ending character index of the cut, exclusive.
@@ -84,11 +84,11 @@ void SetMenuResolution()
 	if (SDL_MUSTLOCK(OutputSurface))
 	{
 		SDL_UnlockSurface(OutputSurface);
-		OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_SWSURFACE);
+		OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE);
 		SDL_LockSurface(OutputSurface);
 		return;
 	}
-	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_SWSURFACE);
+	OutputSurface = SDL_SetVideoMode(GCW0_SCREEN_WIDTH, GCW0_SCREEN_HEIGHT, 16, SDL_HWSURFACE);
 
 #endif
 }
@@ -1692,50 +1692,54 @@ inline void ReGBA_RenderScreen(void)
 			ApplyScaleMode(ResolvedScaleMode);
 			FramesBordered++;
 		}
+		dma_map_buffer();
+		
 		switch (ResolvedScaleMode)
 		{
 			case unscaled:
-				gba_render_fast(OutputSurface->pixels, GBAScreenSurface->pixels);
+				gba_render_fast(dma_ptr, GBAScreenSurface->pixels);
 				break;
 			case fullscreen:
-				gba_upscale(OutputSurface->pixels, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
+				gba_upscale(dma_ptr, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case fullscreen_bilinear:
-				gba_upscale_bilinear(OutputSurface->pixels, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
+				gba_upscale_bilinear(dma_ptr, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case fullscreen_subpixel:
-				gba_upscale_subpixel(OutputSurface->pixels, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
+				gba_upscale_subpixel(dma_ptr, GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case scaled_aspect:
 				gba_upscale_aspect((uint16_t*) ((uint8_t*)
-					OutputSurface->pixels +
+					dma_ptr +
 					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 8 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
 					GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case scaled_aspect_bilinear:
 				gba_upscale_aspect_bilinear((uint16_t*) ((uint8_t*)
-					OutputSurface->pixels +
+					dma_ptr +
 					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 8 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
 					GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 			case scaled_aspect_subpixel:
 				gba_upscale_aspect_subpixel((uint16_t*) ((uint8_t*)
-					OutputSurface->pixels +
+					dma_ptr +
 					(((GCW0_SCREEN_HEIGHT - (GBA_SCREEN_HEIGHT) * 8 / 3) / 2) * OutputSurface->pitch)) /* center vertically */,
 					GBAScreen, GBA_SCREEN_WIDTH, GBA_SCREEN_HEIGHT, GBAScreenSurface->pitch, OutputSurface->pitch);
 				break;
 
 #ifdef GCW_ZERO
 			case hardware:
-				gba_convert(OutputSurface->pixels, GBAScreenSurface->pixels);
+				gba_render_fast(dma_ptr, GBAScreenSurface->pixels);
         break;
 #endif
 		}
+		dma_unmap_buffer();
+		
 		ReGBA_DisplayFPS();
 		ReGBA_VideoFlip();
 
@@ -2179,6 +2183,9 @@ inline void ReGBA_ProgressFinalise()
 
 inline void ReGBA_VideoFlip()
 {
+	video_scale_type ResolvedScaleMode = ResolveSetting(ScaleMode, PerGameScaleMode);
+	if (ResolvedScaleMode == hardware)
+		return;
 	if (SDL_MUSTLOCK(OutputSurface))
 	{
 		SDL_UnlockSurface(OutputSurface);
