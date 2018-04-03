@@ -74,6 +74,7 @@ void init_video()
 	  GBA_GREEN_MASK,
 	  GBA_BLUE_MASK,
 	  0 /* alpha: none */);
+	dma_map_buffer();
 
 	GBAScreen = (uint16_t*) GBAScreenSurface->pixels;
 }
@@ -1692,7 +1693,6 @@ inline void ReGBA_RenderScreen(void)
 			ApplyScaleMode(ResolvedScaleMode);
 			FramesBordered++;
 		}
-		dma_map_buffer();
 		
 		switch (ResolvedScaleMode)
 		{
@@ -1738,7 +1738,6 @@ inline void ReGBA_RenderScreen(void)
         break;
 #endif
 		}
-		dma_unmap_buffer();
 		
 		ReGBA_DisplayFPS();
 		ReGBA_VideoFlip();
@@ -2183,17 +2182,14 @@ inline void ReGBA_ProgressFinalise()
 
 inline void ReGBA_VideoFlip()
 {
-	video_scale_type ResolvedScaleMode = ResolveSetting(ScaleMode, PerGameScaleMode);
-	if (ResolvedScaleMode == hardware)
-		return;
-	if (SDL_MUSTLOCK(OutputSurface))
-	{
-		SDL_UnlockSurface(OutputSurface);
-		SDL_Flip(OutputSurface);
-		SDL_LockSurface(OutputSurface);
-		return;
-	}
-	SDL_Flip(OutputSurface);
+	// if (SDL_MUSTLOCK(OutputSurface))
+	// {
+		// SDL_UnlockSurface(OutputSurface);
+		// SDL_Flip(OutputSurface);
+		// SDL_LockSurface(OutputSurface);
+		// return;
+	// }
+	// SDL_Flip(OutputSurface);
 }
 
 inline void plat_quick_copy(SDL_Surface *src, SDL_Surface *dst)

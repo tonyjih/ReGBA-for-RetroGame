@@ -20,7 +20,7 @@
 #include "common.h"
 #include <sys/time.h>
 #include <stdlib.h>
-
+#include "dma.h"
 //TIMER_TYPE timer[4];
 
 frameskip_type current_frameskip_type = auto_frameskip;
@@ -538,7 +538,7 @@ static void quit_common()
 {
 	if(IsGameLoaded)
 		update_backup_force();
-
+	dma_unmap_buffer();
 	SDL_Quit();
 }
 

@@ -11,9 +11,11 @@ const int dma_size = 320 * 480 * 2;
 
 int dma_map_buffer(void)
 {
+	if (dma_ptr)
+		return -1;
 	dma_fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (dma_fd < 0) {
-		printf("failed to open /dev/mem\n");
+		//printf("failed to open /dev/mem\n");
 		return -1;
 	}
 	return dma_ptr = mmap(0, dma_size, PROT_READ | PROT_WRITE, MAP_SHARED, dma_fd, 0x4200000);
